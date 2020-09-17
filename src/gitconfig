@@ -1,0 +1,8 @@
+# This is Git's per-user configuration file.
+[user]
+name = Jon Staab
+email = shtaab@gmail.com
+[core]
+	editor = kak
+[alias]
+	git = !exec git

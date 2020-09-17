@@ -3,9 +3,6 @@
 # Load editorconfig automatically
 hook global BufCreate .* %{editorconfig-load}
 
-# Show line numbers
-addhl global/ number_lines
-
 # Indent/deindent rather than insert tabs
 map global insert <tab> 'x<a-;><gt><backspace>'
 map global insert <s-tab> '<a-;><lt>'
@@ -20,6 +17,8 @@ set-option global scrolloff 3,5
 # Autoreload changed files
 set-option global autoreload yes
 
+set-option global startup_info_version 20181027
+
 # Plugins ├──────────────────────────────────────────────────────────────────────────
 
 # Custom functions ├─────────────────────────────────────────────────────────────────
@@ -32,7 +31,7 @@ def fzf-file -docstring 'Fuzzy find' %{ %sh{
     if [ -z "$TMUX" ]; then
       echo echo only works inside tmux
     else
-      FILE=$(ack '.*' -l | fzf-tmux -d 15)
+      FILE=$(fd -t f -H --no-ignore-vcs . ./ | fzf-tmux -d 15)
       if [ -n "$FILE" ]; then
         printf 'eval -client %%{%s} edit %%{%s}\n' "${kak_client}" "${FILE}" | kak -p "${kak_session}"
       fi
@@ -53,9 +52,9 @@ def wn -docstring "Write and go to buffer-next" %{ w; buffer-next }
 
 def rm -docstring "Remove current file" %{ %sh{ rm "${kak_buffile}" } }
 
-def clj-eval -docstring "Eval selection in current clojure repl" %{
+def clj-eval -docstring "Eval file in current clojure repl" %{
   echo %sh{
-    echo "$kak_selection" | nc localhost 5555 | sed \$d | sed -e 's/^.*> //g'
+    cat "$kak_buffile" | nc localhost 54455 | sed \$d | sed -e 's/^.*> //g'
   }
 }
 
@@ -67,17 +66,19 @@ def -hidden surround-mode %{
   info -title Commands %{
     ': surround with single quotes
     ": surround with double quotes
+    `: surround with back ticks
     { or }: surround with curly brackets
     [ or ]: surround with square brackets
     ( or ): surround with parentheses
   }
-  on-key %{ %sh{
+  on-key %{ execute-keys -draft %sh{
     case $kak_key in
-      "'") echo exec "i'<esc>a'<esc><a-\;>H" ;;
-      '"') echo exec 'i"<esc>a"<esc><a-\;>H' ;;
-      [\{\}]) echo exec 'i{<esc>a}<esc><a-\;>H' ;;
-      [\[\]]) echo exec 'i[<esc>a]<esc><a-\;>H' ;;
-      [\(\)]) echo exec 'i(<esc>a)<esc><a-\;>H' ;;
+      "'") echo "i'<esc>a'<esc><a-;>H" ;;
+      '"') echo 'i"<esc>a"<esc><a-;>H' ;;
+      '`') echo 'i`<esc>a`<esc><a-;>H' ;;
+      [\{\}]) echo 'i{<esc>a}<esc><a-;>H' ;;
+      [\[\]]) echo 'i[<esc>a]<esc><a-;>H' ;;
+      [\(\)]) echo 'i(<esc>a)<esc><a-;>H' ;;
     esac
   }}
 }
@@ -90,12 +91,12 @@ def -hidden case-change-mode %{
     s: snake case
     k: kebab case
   }
-  on-key %{ %sh{
+  on-key %{ execute-keys -draft %sh{
     case $kak_key in
-      c) echo exec '`s[-_<space>]<ret>d~<a-i>w' ;;
-      p) echo exec '`s[-_<space>]<ret>d~b\;~<a-i>w' ;;
-      s) echo exec '<a-:><a-\;>s-|[a-z][A-Z]<ret>\;a<space><esc>s[-\s]+<ret>c_<esc><a-i>w`' ;;
-      k) echo exec '<a-:><a-\;>s_|[a-z][A-Z]<ret>\;a<space><esc>s[_\s]+<ret>c-<esc><a-i>w`' ;;
+      c) echo '`s[-_<space>]<ret>d~<a-i>w' ;;
+      p) echo '`s[-_<space>]<ret>d~b;~<a-i>w' ;;
+      s) echo '<a-:><a-;>s-|[a-z][A-Z]<ret>;a<space><esc>s[-\s]+<ret>c_<esc><a-i>w`' ;;
+      k) echo '<a-:><a-;>s_|[a-z][A-Z]<ret>;a<space><esc>s[_\s]+<ret>c-<esc><a-i>w`' ;;
     esac
   }}
 }
@@ -105,29 +106,36 @@ def -hidden clj-eval-tree %{
     s: selection
     l: line
   }
-  on-key %{ %sh{
+  on-key %{ execute-keys %sh{
     case $kak_key in
-      s) echo exec ':clj-eval<ret>' ;;
-      l) echo exec 'x:clj-eval<ret>' ;;
+      s) echo ':clj-eval<ret>' ;;
+      l) echo 'x:clj-eval<ret>' ;;
     esac
   }}
 }
 
-def wrap -docstring "Wrap buffer" %{ exec ':addhl buffer wrap<ret>' }
+def wrap -docstring "Wrap buffer" \
+  %{ execute-keys ':addhl buffer/ wrap -word<ret>' }
+
+def sql-fmt -docstring "Formats sql in selection" \
+  %{ execute-keys '|python -m sqlparse -r -k upper -<ret>' }
 
 # Custom mappings ├────────────────────────────────────────────────────────────────
 
 # Copy/paste with system clipboard
-map global user p -docstring "Paste from system clipboard" '<a-!>reattach-to-user-namespace pbpaste<ret>'
 hook global NormalKey y|d|c %{ nop %sh{
-  printf %s "$kak_reg_dquote" | reattach-to-user-namespace pbcopy
+  printf %s "$kak_main_reg_dquote" | reattach-to-user-namespace pbcopy
 }}
 
 # Map to custom commands
+map global user p -docstring "Paste from system clipboard" '<a-!>reattach-to-user-namespace pbpaste<ret>'
+map global user P -docstring "Paste at the end of the line" 'glpa<space><esc>lGl'
 map global user s -docstring 'Surround mode' ':surround-mode<ret>'
 map global user c -docstring 'Case Change mode' ':case-change-mode<ret>'
 map global user , -docstring 'Fuzzy find' ':fzf-file<ret>'
-map global user <ret> -docstring 'Add newline before cursor' i<ret><esc>
+map global user x -docstring 'Open the scratch buffer' ':e *scratch*<ret>'
+map global normal n -docstring 'Advance to next match and center on it' nvv
+map global normal <a-n> -docstring 'Advance to previous match and center on it' <a-n>vv
 
 # Move selection up/down
 map global normal <a-minus> '<a-x>dkPk'
@@ -148,27 +156,21 @@ map global normal <a-ret> O<esc>
 
 # Highlighters ├────────────────────────────────────────────────────────────────
 
-add-highlighter shared/ group tabs
-add-highlighter shared/tabs regex \t+ 0:default,blue
-
-add-highlighter shared/ group trailing_white_spaces
-add-highlighter shared/trailing_white_spaces regex \h+$ 0:Error
-
-add-highlighter shared/ group current_search
-add-highlighter shared/current_search dynregex '%reg{/}' 0:MatchingChar
+add-highlighter global/show-line-numbers number-lines
+# add-highlighter global/show-tabs regex \t+ 0:default,blue
+add-highlighter global/show-trailing-spaces regex \h+$ 0:Error
+add-highlighter global/show-current-match dynregex '%reg{/}' 0:MatchingChar
 
 # Only shown when not in insert mode
 
 hook global ModeChange insert:normal %{
-  add-highlighter window ref tabs
-  add-highlighter window ref trailing_white_spaces
-  add-highlighter window ref current_search
+  add-highlighter global/show-trailing-spaces regex \h+$ 0:Error
+  add-highlighter global/show-current-match dynregex '%reg{/}' 0:MatchingChar
 }
 
 hook global ModeChange normal:insert %{
-  remove-highlighter window/tabs
-  remove-highlighter window/trailing_white_spaces
-  remove-highlighter window/current_search
+  remove-highlighter global/show-trailing-spaces
+  remove-highlighter global/show-current-match
 }
 
 # Filters ├─────────────────────────────────────────────────────────────────────
@@ -187,24 +189,69 @@ define-command -hidden clean-whitespaces %{
 
 # File type ├───────────────────────────────────────────────────────────────────
 
+hook global BufCreate .*\.md %{
+  set-option buffer filetype markdown
+}
+
+hook global BufCreate .*\.(svelte|mjml) %{
+  set-option buffer filetype html
+}
+
+hook global BufCreate .*\.(hy) %{
+  set-option buffer filetype clojure
+}
+
+hook global BufCreate .*\.(mjs) %{
+  set-option buffer filetype javascript
+}
+
+hook global WinSetOption filetype=markdown %{
+  addhl buffer/ wrap -word
+}
+
+hook global WinSetOption filetype=html %{
+  colorscheme desertex
+  set-option buffer comment_line '// '
+}
+
 hook global WinSetOption filetype=javascript %{
   colorscheme desertex
   set-option buffer comment_line '// '
 }
 
 hook global WinSetOption filetype=python %{
+  colorscheme default
   set-option buffer tabstop     4
   set-option buffer indentwidth 4
   set-option buffer comment_line '# '
 }
 
+# hook global WinSetOption filetype=janet %{
+#   colorscheme gruvbox
+# }
+
+hook global WinSetOption filetype=c %{
+  set-option buffer tabstop     4
+  set-option buffer indentwidth 4
+}
+
+hook global WinSetOption filetype=rust %{
+  set-option buffer tabstop     4
+  set-option buffer indentwidth 4
+}
+
 hook global WinSetOption filetype=sh %{
   set-option buffer tabstop     2
   set-option buffer indentwidth 2
-  set-option buffer comment_line '// '
 }
 
 hook global WinSetOption filetype=clojure %{
   set-option buffer comment_line ';; '
+  set-option buffer extra_word_chars -:>:<:!:?:+
   map buffer user e -docstring 'Eval clojure code' ':clj-eval-tree<ret>'
+  map buffer user x -docstring 'Add a print statement' ',s(iconsigncloud.utils.core/p <esc>'
+}
+
+hook global WinSetOption filetype=sql %{
+  set-option buffer comment_line '--'
 }

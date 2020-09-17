@@ -1,0 +1,16 @@
+session_name: main
+start_directory: ~/
+windows:
+- window_name: notes
+  start_directory: ~/my/notes
+  layout: main-vertical
+  options:
+    main-pane-width: 115
+  panes:
+    - kak
+    - shell_command:
+      - ngrok start --all &
+      - sleep 2
+      - bg
+      - htop
+    -

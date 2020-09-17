@@ -1,11 +1,8 @@
 #!/usr/local/bin/python3
 
-import json
-import re
-import sys
-import argparse
+import json, re, sys, argparse, os
 
-with open('/Users/jstaab/Desktop/cc/api/src/utils/ramda.py', 'r') as f:
+with open(os.path.join(os.path.dirname(__file__), 'lib.py'), 'r') as f:
     exec(f.read())
 
 parser = argparse.ArgumentParser(description="Manipulate data using ramda functions")
