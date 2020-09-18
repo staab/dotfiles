@@ -31,7 +31,7 @@ def fzf-file -docstring 'Fuzzy find' %{ %sh{
     if [ -z "$TMUX" ]; then
       echo echo only works inside tmux
     else
-      FILE=$(fd -t f -H . ./ | fzf-tmux -d 15)
+      FILE=$(fd -t f -H --no-ignore-vcs -E '.git/*' . ./ | fzf-tmux -d 15)
       if [ -n "$FILE" ]; then
         printf 'eval -client %%{%s} edit %%{%s}\n' "${kak_client}" "${FILE}" | kak -p "${kak_session}"
       fi
