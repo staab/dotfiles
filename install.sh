@@ -12,5 +12,5 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 echo "Manual steps:
 
 - Set up ngrok.yml
-- Set up path
-- Source ~/.jstaab.sh in zshrc/fishrc/bashrc"
+- Install jq fd-find kakoune postgresql postgresql-server xclip fzf ack fish
+- Install nvm pyenv pipenv tmuxp

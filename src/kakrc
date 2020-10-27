@@ -124,11 +124,11 @@ def sql-fmt -docstring "Formats sql in selection" \
 
 # Copy/paste with system clipboard
 hook global NormalKey y|d|c %{ nop %sh{
-  printf %s "$kak_main_reg_dquote" | reattach-to-user-namespace pbcopy
+  xclip -i <(printf %s "$kak_main_reg_dquote")
 }}
 
 # Map to custom commands
-map global user p -docstring "Paste from system clipboard" '<a-!>reattach-to-user-namespace pbpaste<ret>'
+map global user p -docstring "Paste from system clipboard" '<a-!>xclip -o<ret>'
 map global user P -docstring "Paste at the end of the line" 'glpa<space><esc>lGl'
 map global user s -docstring 'Surround mode' ':surround-mode<ret>'
 map global user c -docstring 'Case Change mode' ':case-change-mode<ret>'
