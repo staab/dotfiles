@@ -1,8 +1,7 @@
 session_name: main
-start_directory: ~/
+start_directory: ~/my/notes
 windows:
 - window_name: notes
-  start_directory: ~/my/notes
   layout: main-vertical
   options:
     main-pane-width: 115

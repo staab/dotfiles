@@ -122,10 +122,14 @@ def sql-fmt -docstring "Formats sql in selection" \
 
 # Custom mappings ├────────────────────────────────────────────────────────────────
 
-# Copy/paste with system clipboard
+# Copy/paste with system clipboard, all the redirection stuff is to make it async
+# since pbcopy takes a second or so
+# https://discuss.kakoune.com/t/interfacing/533
 hook global NormalKey y|d|c %{ nop %sh{
-  printf %s "$kak_main_reg_dquote" | reattach-to-user-namespace pbcopy
-}}
+  {
+    printf %s "$kak_main_reg_dquote" | reattach-to-user-namespace pbcopy
+  } > /dev/null 2>&1 < /dev/null &
+} }
 
 # Map to custom commands
 map global user p -docstring "Paste from system clipboard" '<a-!>reattach-to-user-namespace pbpaste<ret>'
@@ -133,7 +137,7 @@ map global user P -docstring "Paste at the end of the line" 'glpa<space><esc>lGl
 map global user s -docstring 'Surround mode' ':surround-mode<ret>'
 map global user c -docstring 'Case Change mode' ':case-change-mode<ret>'
 map global user , -docstring 'Fuzzy find' ':fzf-file<ret>'
-map global user x -docstring 'Open the scratch buffer' ':e *scratch*<ret>'
+map global user x -docstring 'Open the scratch buffer' ':e -scratch *scratch*<ret>'
 map global normal n -docstring 'Advance to next match and center on it' nvv
 map global normal <a-n> -docstring 'Advance to previous match and center on it' <a-n>vv
 
@@ -207,6 +211,7 @@ hook global BufCreate .*\.(mjs) %{
 
 hook global WinSetOption filetype=markdown %{
   addhl buffer/ wrap -word
+  map buffer user l -docstring 'Linkify selection with clipboard contents' ',s]<a-:>la()<esc>h,pml'
 }
 
 hook global WinSetOption filetype=html %{
