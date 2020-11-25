@@ -11,5 +11,3 @@ alias rmkak='rm ./**/*.kak.*'
 alias avg="awk '{ total += \$1; count++ } END { print total/count }'"
 alias lower="tr '[:upper:]' '[:lower:]'"
 alias upper="tr '[:lower:]' '[:upper:]'"
-
-. ~/.config/jstaab/path.sh
