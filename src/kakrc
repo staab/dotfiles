@@ -21,6 +21,8 @@ set-option global startup_info_version 20181027
 
 # Plugins ├──────────────────────────────────────────────────────────────────────────
 
+source "%val{config}/plugins/plug.kak/rc/plug.kak"
+
 # Custom functions ├─────────────────────────────────────────────────────────────────
 
 # Open kakoune config
@@ -124,11 +126,11 @@ def sql-fmt -docstring "Formats sql in selection" \
 
 # Copy/paste with system clipboard
 hook global NormalKey y|d|c %{ nop %sh{
-  xclip -i <(printf %s "$kak_main_reg_dquote")
-}}
+  printf %s "$kak_main_reg_dquote" | xsel -bi
+}  }
 
 # Map to custom commands
-map global user p -docstring "Paste from system clipboard" '<a-!>xclip -o<ret>'
+  map global user p -docstring "Paste from system clipboard" '<a-!>xsel -bo<ret>'
 map global user P -docstring "Paste at the end of the line" 'glpa<space><esc>lGl'
 map global user s -docstring 'Surround mode' ':surround-mode<ret>'
 map global user c -docstring 'Case Change mode' ':case-change-mode<ret>'
