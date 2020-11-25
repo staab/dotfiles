@@ -7,9 +7,34 @@ windows:
     main-pane-width: 115
   panes:
     - kak
-    - shell_command:
-      - ngrok start --all &
-      - sleep 2
-      - bg
-      - htop
+    - htop
     -
+- window_name: api
+  start_directory: ~/cc/api
+  layout: main-vertical
+  options:
+    main-pane-width: 115
+  panes:
+    - shell_command:
+      - nvm use
+      - pipenv shell kak
+    - shell_command:
+      - nvm use
+      - pipenv shell yarn dev
+    - shell_command:
+      - nvm use
+      - pipenv shell
+- window_name: client
+  start_directory: ~/cc/client
+  layout: main-vertical
+  options:
+    main-pane-width: 115
+  panes:
+    - shell_command:
+      - nvm use
+      - kak
+    - shell_command:
+      - nvm use
+      - yarn start
+    - shell_command:
+      - nvm use
