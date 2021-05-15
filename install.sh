@@ -20,4 +20,6 @@ echo "Manual steps:
           libssl-dev libffi-dev llvm ncurses-dev libyaml-dev libsqlite-dev
           libpq-dev postgresql-contrib htop wkhtmltopdf entr zlib1g-dev
           libsqlite3-dev libbz2-dev
+- Ubuntu: jq fd-find kakoune postgresql xsel fzf ack entr nvm pipenv tmuxp
 - Install nvm pyenv pipenv tmuxp yarn
+- Install pipenv: https://pipenv.pypa.io/en/latest/install/"

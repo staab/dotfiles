@@ -28,8 +28,11 @@ source "%val{config}/plugins/plug.kak/rc/plug.kak"
 # Open kakoune config
 def conf -docstring 'Open kakrc' %{ e ~/.config/kak/kakrc }
 
+# Open debug buffer
+def deb -docstring 'Open debug buffer' %{ e *debug* }
+
 # Use fzf to fuzzy find stuff
-def fzf-file -docstring 'Fuzzy find' %{ %sh{
+def fzf-file -docstring 'Fuzzy find' %{ nop %sh{
     if [ -z "$TMUX" ]; then
       echo echo only works inside tmux
     else
@@ -39,6 +42,12 @@ def fzf-file -docstring 'Fuzzy find' %{ %sh{
       fi
     fi
 } }
+
+def psql-tmux \
+  -override \
+  -params 0..1000 \
+  -docstring "Evaluate current selection as a query in psql-tmux." \
+%{ nop %sh{ psql-tmux --interactive --query "${kak_selection}" "$@" } }
 
 # Split windows using tmux
 def vs -docstring "Open a vertical split" \
@@ -132,7 +141,7 @@ hook global NormalKey y|d|c %{ nop %sh{
 }  }
 
 # Map to custom commands
-  map global user p -docstring "Paste from system clipboard" '<a-!>xsel -bo<ret>'
+map global user p -docstring "Paste from system clipboard" '<a-!>xsel -bo<ret>'
 map global user P -docstring "Paste at the end of the line" 'glpa<space><esc>lGl'
 map global user s -docstring 'Surround mode' ':surround-mode<ret>'
 map global user c -docstring 'Case Change mode' ':case-change-mode<ret>'
@@ -229,6 +238,7 @@ hook global WinSetOption filetype=python %{
   set-option buffer tabstop     4
   set-option buffer indentwidth 4
   set-option buffer comment_line '# '
+  map buffer user P -docstring 'Add pprint statement' 'I__import__("pprint").pprint(<esc>A)<esc>'
 }
 
 # hook global WinSetOption filetype=janet %{
@@ -259,4 +269,5 @@ hook global WinSetOption filetype=clojure %{
 
 hook global WinSetOption filetype=sql %{
   set-option buffer comment_line '--'
+  map buffer user e -docstring "Evaluate current paragraph in psql-tmux" '<a-i>p:psql-tmux<ret>'
 }

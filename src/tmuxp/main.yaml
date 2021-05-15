@@ -1,19 +1,15 @@
 session_name: main
-start_directory: ~/my/notes
+start_directory: ~/Documents/notes
 windows:
 - window_name: notes
   layout: main-vertical
-  options:
-    main-pane-width: 115
   panes:
     - kak
     - htop
     -
 - window_name: api
-  start_directory: ~/cc/api
+  start_directory: ~/Documents/cc/api
   layout: main-vertical
-  options:
-    main-pane-width: 115
   panes:
     - shell_command:
       - nvm use
@@ -25,10 +21,8 @@ windows:
       - nvm use
       - pipenv shell
 - window_name: client
-  start_directory: ~/cc/client
+  start_directory: ~/Documents/cc/client
   layout: main-vertical
-  options:
-    main-pane-width: 115
   panes:
     - shell_command:
       - nvm use
